@@ -1,1 +1,16 @@
-/target
+# Ignore the target directory at the root level
+/target/
+
+# Ignore the target directory within the migration directory
+/migration/target/
+
+# Ignore the DB directory at the root level
+/DB/
+
+# Ignore .env files at the root level and in any subdirectory
+.env
+**/.env
+
+# Ignore .vscode directories in all subdirectories
+.vscode/
+**/.vscode/
