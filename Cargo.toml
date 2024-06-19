@@ -10,7 +10,5 @@ diesel = { version = "2.1", features = ["chrono"] }
 diesel-async = { version = "0.4", features = ["postgres"] }
 chrono = { version = "0.4", features = ["serde", "clock"] }
 dotenv = "0.15"
+serde = "1.0"
 
-
-[default.databases]
-postgres = { url = "${DATABASE_URL}" }
