@@ -1,20 +1,16 @@
-use rocket_db_pools::{Connection, Database};
-use std::env;
+use rocket_db_pools::Database;
+use project::database::DbConn;
 
-#[derive(Database)]
-#[database("postgres")]
-pub struct DbConn(rocket_db_pools::diesel::PgPool);
-
+mod schema;
+mod project;
 mod settings;
+mod auth;
 
 #[rocket::main]
 async fn main() {
-    dotenv::dotenv().ok();
-      // Print DATABASE_URL to verify it is loaded
-      println!("DATABASE_URL: {:?}", env::var("DATABASE_URL"));
-    let _ = rocket::build()
-        .mount("/", rocket::routes![
-        ])
+    let sets = project::ProjectSettings::new(); 
+    let _ = rocket::custom(sets.figment)
+        .mount("/", sets.routes)                                  //Add 
         .attach(DbConn::init())
         .launch()
         .await;
