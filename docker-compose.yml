@@ -1,3 +1,5 @@
+version: '3.3'
+
 services:
   postgres:
     image: postgres
@@ -10,6 +12,8 @@ services:
       - '5432:5432'
     volumes:
       - ./DB/postgres_data:/var/lib/postgresql/data
+    command: ["postgres", "-c", "log_statement=all"]
+
   pgadmin4:
     image: elestio/pgadmin
     restart: always
@@ -24,3 +28,6 @@ services:
     volumes:
        - ./DB/pgadmin_data:/var/lib/pgadmin  
        - ./DB/servers.json:/pgadmin4/servers.json
+  
+  redis:
+    image: redis
