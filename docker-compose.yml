@@ -31,3 +31,4 @@ services:
   
   redis:
     image: redis
+    restart: always
