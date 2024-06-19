@@ -4,3 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+rocket = { version = "0.5", features = ["secrets", "json"] }
+rocket_db_pools = { version = "0.2", features = ["diesel_postgres"] }
+diesel = { version = "2.1", features = ["chrono"] }
+diesel-async = { version = "0.4", features = ["postgres"] }
+chrono = { version = "0.4", features = ["serde", "clock"] }
+dotenv = "0.15"
+
+
+[default.databases]
+postgres = { url = "${DATABASE_URL}" }
