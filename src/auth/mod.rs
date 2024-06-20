@@ -1,6 +1,7 @@
 pub mod routes;
 pub mod models;
 pub mod repositories;
+pub mod services;
 
 use crate::project::AppSettings;
 use rocket::routes;
