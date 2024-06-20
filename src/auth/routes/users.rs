@@ -1,17 +1,17 @@
 use rocket::response::status::{Custom, NoContent};
 use rocket::{get, post, delete, put, http::Status};
-use rocket_db_pools::Connection;
+use rocket::serde::json::{Json, json, Value};
+use validator::Validate;
+
 use super::super::repositories::users::UserRepository;
 use super::super::models::users::*;
-use crate::project::database::DbConn; 
-// use chrono::{NaiveDateTime, Utc};
-use rocket::serde::json::{Json, json, Value};
 
+use super::Conn; //Import from mod.rs
 
 
 
 #[get("/auth/users")]
-pub async fn get_all_users(mut db: Connection<DbConn>) -> Result<Value, Custom<Value>> {
+pub async fn get_all_users(mut db: Conn) -> Result<Value, Custom<Value>> {
     UserRepository::select_all(&mut db).await
     .map(|users| {
         let user_responses: Vec<UserResponse> = users.into_iter().map(UserResponse::from).collect();
@@ -21,7 +21,7 @@ pub async fn get_all_users(mut db: Connection<DbConn>) -> Result<Value, Custom<V
 }
 
 #[post("/auth/users", format="json", data="<new_user>")]
-pub async fn create_user(mut db: Connection<DbConn>, new_user: Json<NewUser> ) -> Result<Custom<Value>, Custom<Value>> {
+pub async fn create_user(mut db: Conn, new_user: Json<NewUser> ) -> Result<Custom<Value>, Custom<Value>> {
      // Validate the incoming user data
     if new_user.validate().is_err() {
         return Err(Custom(Status::UnprocessableEntity, json!("Validation Error")));
@@ -32,19 +32,44 @@ pub async fn create_user(mut db: Connection<DbConn>, new_user: Json<NewUser> ) -
         .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
 }
 
+#[post("/auth/users/create_with_roles", format = "json", data = "<user_with_groups>")]
+pub async fn create_user_with_groups(mut db: Conn, user_with_groups: Json<NewUserWithGroups>) -> Result<Custom<Value>, Custom<Value>> {
+    // Validate the incoming request data
+    if let Err(errors) = user_with_groups.validate() {
+        return Err(Custom(Status::UnprocessableEntity, json!({"errors": errors})));
+    }
+ // Destructure the payload to move values out directly
+    let NewUserWithGroups { username, email, password, groups_ids } = user_with_groups.into_inner();
+    
+    let new_user = NewUser {
+        username,
+        email,
+        password,
+    };
+// TODO
+    UserRepository::create(&mut db, new_user).await
+        .map(|user| Custom(Status::Created, json!(UserResponse::from(user))))
+        .map_err(|_| Custom(Status::InternalServerError, json!("Error creating user")))
+    
+}
+
+
+
 #[delete("/auth/users/<id>")]
-pub async fn delete_user(mut db: Connection<DbConn>, id: i32) -> Result<NoContent, Custom<Value>> {
+pub async fn delete_user(mut db: Conn, id: i32) -> Result<NoContent, Custom<Value>> {
     UserRepository::delete(&mut db, id).await
         .map(|_| NoContent)
         .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
 }
 
 #[put("/auth/users/<id>", format="json", data="<user>")]
-pub async fn update_user(mut db: Connection<DbConn>, id: i32, user: Json<UpdateUser>) -> Result<Value, Custom<Value>> {
+pub async fn update_user(mut db: Conn, id: i32, user: Json<UpdateUser>) -> Result<Value, Custom<Value>> {
     UserRepository::update(&mut db, id, user.into_inner()).await
         .map(|user| json!(UserResponse::from(user)))
         .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
 }
+
+
 
 
 // #[rocket::get("/rustaceans")]
