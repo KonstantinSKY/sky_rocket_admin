@@ -1,10 +1,13 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::{Serialize, Deserialize};
+use validator_derive::Validate;
 use crate::schema::*;
+use validator::{Validate, ValidationError};
+
 
 #[derive(Queryable, Serialize, Deserialize)]
-pub struct User {
+pub struct User {                                   //The main Model
     pub id: i32,
     pub username: String,
     pub password: String,
@@ -18,12 +21,15 @@ pub struct User {
     pub created_at: NaiveDateTime,
 }
 
-#[derive(Insertable, Deserialize)]
+#[derive(Insertable, Deserialize, Validate)]
 #[diesel(table_name=users)]
 pub struct NewUser {
+    #[validate(length(min = 3, message = "Username must be at least 3 characters long"))]
     pub username: String,
+    #[validate(email(message = "Email must be a valid email address"))]
     pub email: String,
-    pub password: String
+    #[validate(length(min = 6, message = "Username must be at least  characters long"))]
+    pub password: String,
 }
 
 #[derive(Insertable, Deserialize)]
