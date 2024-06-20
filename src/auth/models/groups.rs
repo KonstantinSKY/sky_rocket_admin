@@ -1,6 +1,6 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use serde::{Deserialize, Serialize}
+use serde::{Deserialize, Serialize};
 use crate::schema::*;
 
 #[derive(Queryable, Serialize, Deserialize)]
