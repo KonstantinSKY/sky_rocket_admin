@@ -1,6 +1,6 @@
 pub mod routes;
 pub mod models;
-// pub mod services;
+pub mod repositories;
 
 use crate::project::AppSettings;
 use rocket::routes;
@@ -14,9 +14,10 @@ pub fn get_app_settings() -> AppSettings {
         routes: routes![
           R::hi_json::hi_json,
           R::hello::hello,
-          // R::users::get_all_users,
-          // R::users::add_user,
-          // R::users::delete_user,
+          R::users::get_all_users,
+          R::users::create_user,
+          R::users::delete_user,
+          R::users::update_user,
           // R::groups::get_all_groups,
           // R::groups::add_group,
           // R::groups::delete_group,
