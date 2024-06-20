@@ -13,14 +13,17 @@ use rocket::serde::json::{Json, json, Value};
 #[get("/auth/users")]
 pub async fn get_all_users(mut db: Connection<DbConn>) -> Result<Value, Custom<Value>> {
     UserRepository::select_all(&mut db).await
-        .map(|users| json!(users))
-        .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
+    .map(|users| {
+        let user_responses: Vec<UserResponse> = users.into_iter().map(UserResponse::from).collect();
+        json!(user_responses)
+    })
+    .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
 }
 
 #[post("/auth/users", format="json", data="<new_user>")]
 pub async fn create_user(mut db: Connection<DbConn>, new_user: Json<NewUser> ) -> Result<Custom<Value>, Custom<Value>> {
     UserRepository::create(&mut db, new_user.into_inner()).await
-        .map(|user| Custom(Status::Created, json!(user)))
+        .map(|user| Custom(Status::Created, json!(UserResponse::from(user))))
         .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
 }
 
@@ -32,9 +35,9 @@ pub async fn delete_user(mut db: Connection<DbConn>, id: i32) -> Result<NoConten
 }
 
 #[put("/auth/users/<id>", format="json", data="<user>")]
-pub async fn update_user(mut db: Connection<DbConn>, id: i32, user: Json<User>) -> Result<Value, Custom<Value>> {
+pub async fn update_user(mut db: Connection<DbConn>, id: i32, user: Json<UpdateUser>) -> Result<Value, Custom<Value>> {
     UserRepository::update(&mut db, id, user.into_inner()).await
-        .map(|user| json!(user))
+        .map(|user| json!(UserResponse::from(user)))
         .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
 }
 
