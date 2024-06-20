@@ -22,6 +22,11 @@ pub async fn get_all_users(mut db: Connection<DbConn>) -> Result<Value, Custom<V
 
 #[post("/auth/users", format="json", data="<new_user>")]
 pub async fn create_user(mut db: Connection<DbConn>, new_user: Json<NewUser> ) -> Result<Custom<Value>, Custom<Value>> {
+     // Validate the incoming user data
+    if new_user.validate().is_err() {
+        return Err(Custom(Status::UnprocessableEntity, json!("Validation Error")));
+    }
+
     UserRepository::create(&mut db, new_user.into_inner()).await
         .map(|user| Custom(Status::Created, json!(UserResponse::from(user))))
         .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
