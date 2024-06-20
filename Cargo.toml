@@ -11,4 +11,4 @@ diesel-async = { version = "0.4", features = ["postgres"] }
 chrono = { version = "0.4", features = ["serde", "clock"] }
 dotenv = "0.15"
 serde = "1.0"
-
+bcrypt = "0.15"
