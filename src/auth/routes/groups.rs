@@ -1,44 +1,46 @@
-use chrono::Utc;
-use rocket::http::Status;
-use rocket::serde::{json::Json, Deserialize};
-use rocket::{get, post, State};
-use sea_orm::{entity::*, DatabaseConnection};
-use super::super::models::group;
-use crate::db::{select, insert};
-use crate::project::responses;
+use rocket::response::status::{Custom, NoContent};
+use rocket::{get, post, delete, put, http::Status};
+use rocket::serde::json::{Json, json, Value};
+use validator::Validate;
+
+use super::super::{
+    repositories::groups::GroupRepository,
+    models::groups::*
+};
+
+use super::Conn;                                    // Connection<DbConn> from mod.rs
 
 #[get("/auth/groups")]
-pub async fn get_all_groups(db: &State<DatabaseConnection>) -> Result<Json<Vec<group::Model>>, Status> {
-    let result = select::select_all::<group::Entity>(db).await;
-    responses::handle_selection_result(result)
+pub async fn get_all_groups(mut db: Conn) -> Result<Value, Custom<Value>> {
+    GroupRepository::select_all(&mut db).await
+    .map(|groups | json!(groups))
+    .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
 }
 
-// Post New group
-#[derive(Deserialize)]
-pub struct NewGroup {
-    pub name: String,
-    pub description: Option<String>,
-}
-// Handler to add a new group
-#[post("/auth/groups", data = "<new_group>")]
-pub async fn add_group(db: &State<DatabaseConnection>, new_group: Json<NewGroup>) -> Result<Json<group::Model>, Status> {
-    
-    let active_group = group::ActiveModel {
-        name: Set(new_group.name.clone()),
-        description: Set(new_group.description.clone()),
-        created_at: Set(Utc::now().naive_utc()),
-        ..Default::default()
-    };
-
-    let insert_result = insert::insert::<group::Entity, _>(db, active_group).await;
-    responses::handle_insertion_result(insert_result)
+#[post("/auth/groups", format="json", data="<new_group>")]
+pub async fn create_group(mut db: Conn, new_group: Json<NewGroup> ) -> Result<Custom<Value>, Custom<Value>> {
+    if new_group.validate().is_err() {
+        return Err(Custom(Status::UnprocessableEntity, json!("Validation Error")));
+    }
+    GroupRepository::create(&mut db, new_group.into_inner()).await
+        .map(|group| Custom(Status::Created, json!(group)))
+        .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
 }
 
-// Handler to delete a user
-#[delete("/auth/groups/<group_id>")]
-pub async fn delete_group(db: &State<DatabaseConnection>, group_id: i32) -> Result <Status, Status> {
-    let result = group::Entity::delete_by_id(group_id).exec(db.inner()).await;    // Correct
-    responses::handle_deletion_result(result)
+#[delete("/auth/groups/<id>")]
+pub async fn delete_group(mut db: Conn, id: i32) -> Result<NoContent, Custom<Value>> {
+    GroupRepository::delete(&mut db, id).await
+        .map(|_| NoContent)
+        .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
+}
 
+#[put("/auth/groups/<id>", format="json", data="<new_group>")]
+pub async fn update_group(mut db: Conn, id: i32, new_group: Json<NewGroup>) -> Result<Value, Custom<Value>> {
+    if new_group.validate().is_err() {
+        return Err(Custom(Status::UnprocessableEntity, json!("Validation Error")));
+    }
+    GroupRepository::update(&mut db, id, new_group.into_inner()).await
+        .map(|group| json!(group))
+        .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
 }
 
