@@ -3,7 +3,6 @@ use diesel::prelude::*;
 use serde::{Serialize, Deserialize};
 use validator_derive::Validate;
 use crate::schema::*;
-use validator::{Validate, ValidationError};
 
 
 #[derive(Queryable, Serialize, Deserialize)]
@@ -24,13 +23,25 @@ pub struct User {                                   //The main Model
 #[derive(Insertable, Deserialize, Validate)]
 #[diesel(table_name=users)]
 pub struct NewUser {
-    #[validate(length(min = 3, message = "Username must be at least 3 characters long"))]
+    #[validate(length(min = 3, max = 100, message = "Username must be at least 3 characters long"))]
     pub username: String,
     #[validate(email(message = "Email must be a valid email address"))]
     pub email: String,
-    #[validate(length(min = 6, message = "Username must be at least  characters long"))]
+    #[validate(length(min = 6, max = 100, message = "Username must be at least 6 characters long"))]
     pub password: String,
 }
+
+#[derive(Deserialize, Validate)]
+pub struct NewUserWithGroups {
+    #[validate(length(min = 3))]
+    pub username: String,
+    #[validate(email)]
+    pub email: String,
+    #[validate(length(min = 8))]
+    pub password: String,
+    pub groups_ids: Vec<i32>,
+}
+
 
 #[derive(Insertable, Deserialize)]
 #[diesel(table_name=users)]
