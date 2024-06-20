@@ -1,5 +1,6 @@
 use diesel::prelude::*;
 use diesel_async::{RunQueryDsl, AsyncPgConnection as Conn};
+use super::super::services::crypto;
 
 use super::super::models::users::*;
 use crate::schema::*;
@@ -19,13 +20,18 @@ impl UserRepository {
     // }
 
     pub async fn create(conn: &mut Conn, new_user: NewUser) -> QueryResult<User> {
+        let user_with_hashed_password = NewUser {
+            password: crypto::hash_password(new_user.password),
+            ..new_user
+        };
+    
         diesel::insert_into(users::table)
-            .values(new_user)
+            .values(user_with_hashed_password)
             .get_result(conn)
             .await
     }
 
-    pub async fn update(conn: &mut Conn, id: i32, user: User) -> QueryResult<User> {
+    pub async fn update(conn: &mut Conn, id: i32, user: UpdateUser) -> QueryResult<User> {
         diesel::update(users::table.find(id))
             .set((
                 users::username.eq(user.username),
