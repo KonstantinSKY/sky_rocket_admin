@@ -23,6 +23,7 @@ pub fn get_app_settings() -> AppSettings {
           R::groups::create_group,
           R::groups::delete_group,
           R::groups::update_group,
+          R::authorization::login,
           // R::user_group::get_all,
           // R::user_group::add_one,
           ],
