@@ -12,6 +12,10 @@ impl UserRepository {
         users::table.load::<User>(conn).await
     }
 
+    pub async fn find_by_username(conn: &mut Conn, username: &String) -> QueryResult<User> {
+        users::table.filter(users::username.eq(username)).get_result(conn).await
+    }
+
     // pub async fn select_all(conn: &mut AsyncPgConnection, id: i32) -> QueryResult<User> {
     //     users::table.find(id).get_result(conn).await
     // }
