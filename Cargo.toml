@@ -11,6 +11,11 @@ diesel-async = { version = "0.4", features = ["postgres"] }
 chrono = { version = "0.4", features = ["serde", "clock"] }
 dotenv = "0.15"
 serde = "1.0"
+serde_json = "1.0"
 bcrypt = "0.15"
 validator = "0.18"
 validator_derive = "0.18"
+
+[dev-dependencies]
+reqwest = { version = "0.12", features = ["json", "blocking"]}
+fake = { version = "2.9", features = ["derive"] }
