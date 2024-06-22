@@ -14,22 +14,16 @@ pub struct Credentials {
 #[rocket::post("/login", format="json", data="<credentials>")]
 pub async fn login(mut db: Conn, credentials: Json<Credentials>) -> Result<Value, Custom<Value>> {
     println!("Credentials: {:?}", credentials);
-    let result = UserRepository::find_by_username(&mut db, &credentials.username).await
-    .map(|user| {
-        match verify(&credentials.password, &user.password) {
-            Ok(true) => Ok(json!("Success")),
-            Ok(false) | Err(_) => Err(Custom(Status::Unauthorized, json!("Wrong credentials"))),
+    
+    match UserRepository::find_by_username(&mut db, &credentials.username).await {
+        Ok(user) => {
+            match verify(&credentials.password, &user.password) {
+                Ok(true) => Ok(json!("Success")),
+                Ok(false) | Err(_) => Err(Custom(Status::Unauthorized, json!("Wrong credentials"))),
+            }
         }
-    })
-    .map_err(|e| {
-        match e {
-            diesel::result::Error::NotFound => Custom(Status::Unauthorized, json!("Wrong credentials")),
-            _ => Custom(Status::InternalServerError, json!("Server Error")),
-        }
-    });
-    match result {
-        Ok(inner_result) => inner_result,
-        Err(e) => Err(e),
+        Err(diesel::result::Error::NotFound) => Err(Custom(Status::Unauthorized, json!("Wrong credentials"))),
+        Err(_) => Err(Custom(Status::InternalServerError, json!("Server Error"))),
     }
 }
 
