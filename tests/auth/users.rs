@@ -1,5 +1,5 @@
 // use fake::{Dummy, Fake, Faker};
-use fake::{faker::internet::en::Username, Fake};
+use fake::{faker::internet::en::{Username, SafeEmail}, Fake};
 
 use reqwest::{blocking::Client, header, StatusCode};
 use serde_json::{json, Value};
@@ -54,11 +54,11 @@ fn test_create_user() {
 
     // Generate a random username using the `fake` crate
     let random_username: String = Username().fake();
-    let random_email: String = Username().fake();
+    let random_email: String = SafeEmail().fake();
     
     let new_user = json!({
         "username": random_username,
-        "email": "johndoe_j@example.com",
+        "email": random_email,
         "password": "securepassword123"
     });
 
