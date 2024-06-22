@@ -2,6 +2,7 @@
 name = "sky_rocket_admin"
 version = "0.1.0"
 edition = "2021"
+default-run = "server"
 
 [dependencies]
 rocket = { version = "0.5", features = ["secrets", "json"] }
