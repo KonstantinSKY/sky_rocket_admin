@@ -5,5 +5,6 @@ mod schema;
 pub mod project;
 pub mod commands;
 mod settings;
-mod auth;
+pub mod auth;
+
 
