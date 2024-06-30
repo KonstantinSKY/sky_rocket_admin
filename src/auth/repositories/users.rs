@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 use diesel_async::{RunQueryDsl, AsyncPgConnection as Conn};
-use super::super::services::crypto;
+use super::super::services::auth;
 
 use super::super::models::users::*;
 use crate::schema::*;
@@ -25,7 +25,7 @@ impl UserRepository {
 
     pub async fn create(conn: &mut Conn, new_user: NewUser) -> QueryResult<User> {
         let user_with_hashed_password = NewUser {
-            password: crypto::hash_password(new_user.password),
+            password: auth::hash_password(new_user.password),
             ..new_user
         };
     
