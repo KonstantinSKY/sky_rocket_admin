@@ -1,9 +1,11 @@
+use bcrypt::{BcryptError, DEFAULT_COST};
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use rocket::serde::json::Json;
 use serde::{Serialize, Deserialize};
 use validator_derive::Validate;
 use crate::schema::*;
-
+use super::super::services::auth;
 
 #[derive(Queryable, Serialize, Deserialize)]
 pub struct User {                                   //The main Model
@@ -30,6 +32,41 @@ pub struct NewUser {
     #[validate(length(min = 6, max = 100, message = "Username must be at least 6 characters long"))]
     pub password: String,
 }
+impl NewUser {
+    pub fn with_hashed_password(self, ) -> Result<Self, BcryptError> {
+        match auth::hash_password(self.password) {
+            Ok(hashed_password) => Ok(Self {
+                password: hashed_password,
+                ..self
+            }),
+            Err(e) => Err(e),
+        }
+    }
+    pub fn convert (self,user_json : Json<User>) -> Result<User, Custom<Value>> {
+        match auth::hash_password(self.password) {
+            Ok(hashed_password) => Ok(Self {
+                password: hashed_password,
+                ..self
+            }),
+            Err(e) => Err(e),
+        }
+    }
+}
+
+
+#[derive(Insertable, Deserialize, Validate, Debug)]
+#[diesel(table_name=users)]
+pub struct NewSuperUser {
+    #[validate(length(min = 5, max = 150, message = "Username must be at least 3 characters long"))]
+    pub username: String,
+    #[validate(email(message = "Email must be a valid email address"))]
+    pub email: String,
+    #[validate(length(min = 8, max = 150, message = "Username must be at least 6 characters long"))]
+    pub password: String,
+    pub is_staff: bool,
+    pub is_superuser: bool,
+}
+
 
 #[derive(Deserialize, Validate)]
 pub struct NewUserWithGroups {
