@@ -1,3 +1,5 @@
+#![warn(clippy::pedantic)]  
+
 pub use rocket_db_pools::Database;
 pub use project::database::DbConn;
 
