@@ -5,13 +5,13 @@ use validator::Validate;
 
 use super::super::repositories::users::UserRepository;
 use super::super::models::users::*;
-
+use super::authorization::AuthenticatedUser;
 use super::Conn; //Import from mod.rs
 
 
 
 #[get("/auth/users")]
-pub async fn get_all_users(mut db: Conn) -> Result<Value, Custom<Value>> {
+pub async fn get_all_users(mut db: Conn, _user: AuthenticatedUser) -> Result<Value, Custom<Value>> {
     UserRepository::select_all(&mut db).await
     .map(|users| {
         let user_responses: Vec<UserResponse> = users.into_iter().map(UserResponse::from).collect();
@@ -23,11 +23,23 @@ pub async fn get_all_users(mut db: Conn) -> Result<Value, Custom<Value>> {
 #[post("/auth/users", format="json", data="<new_user>")]
 pub async fn create_user(mut db: Conn, new_user: Json<NewUser> ) -> Result<Custom<Value>, Custom<Value>> {
      // Validate the incoming user data
+      // Validate the incoming user data
     if new_user.validate().is_err() {
         return Err(Custom(Status::UnprocessableEntity, json!("Validation Error")));
     }
 
-    UserRepository::create(&mut db, new_user.into_inner()).await
+     // Hash the password
+     let hashed_user = match new_user.into_inner().with_hashed_password() {
+        Ok(user) => user,
+        Err(_) => return Err(Custom(Status::InternalServerError, json!("Error hashing"))),
+    };
+     // Hash the password
+     let hashed_user = match new_user.into_inner().with_hashed_password() {
+        Ok(user) => user,
+        Err(_) => return Err(Custom(Status::InternalServerError, json!("Error hashing"))),
+    };
+
+    UserRepository::create(&mut db, hashed_user).await
         .map(|user| Custom(Status::Created, json!(UserResponse::from(user))))
         .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
 }
