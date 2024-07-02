@@ -1,7 +1,7 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::schema::*;
+use crate::schema::groups;
 use validator_derive::Validate;
 
 #[derive(Queryable, Serialize, Deserialize)]
