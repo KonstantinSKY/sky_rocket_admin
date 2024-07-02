@@ -33,16 +33,10 @@ pub struct NewUser {
     pub password: String,
 }
 impl NewUser {
-    pub fn with_hashed_password(self, ) -> Result<Self, BcryptError> {
-        match auth::hash_password(self.password) {
-            Ok(hashed_password) => Ok(Self {
-                password: hashed_password,
-                ..self
-            }),
-            Err(e) => Err(e),
-        }
-    }
-    pub fn convert (self,user_json : Json<User>) -> Result<User, Custom<Value>> {
+    /// Adds a hashed password to the user.
+    /// # Errors
+    /// This function will return a `BcryptError` if the password hashing fails.
+    pub fn add_hashed_password(self) -> Result<Self, BcryptError> {
         match auth::hash_password(self.password) {
             Ok(hashed_password) => Ok(Self {
                 password: hashed_password,
@@ -66,7 +60,20 @@ pub struct NewSuperUser {
     pub is_staff: bool,
     pub is_superuser: bool,
 }
-
+impl NewSuperUser {
+    /// Adds a hashed password to the superuser.
+    /// # Errors
+    /// This function will return a `BcryptError` if the password hashing fails.
+    pub fn add_hashed_password(self ) -> Result<Self, BcryptError> {
+        match auth::hash_password(self.password) {
+            Ok(hashed_password) => Ok(Self {
+                password: hashed_password,
+                ..self
+            }),
+            Err(e) => Err(e),
+        }
+    }
+}
 
 #[derive(Deserialize, Validate)]
 pub struct NewUserWithGroups {
