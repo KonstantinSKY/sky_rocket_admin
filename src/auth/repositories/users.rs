@@ -113,7 +113,6 @@ impl UserRepository {
     ///
     /// This function will return a `QueryResult` error if there is an issue
     /// updating the user in the database.
-    ///
     pub async fn update(conn: &mut Conn, id: i32, user: UpdateUser) -> QueryResult<User> {
         diesel::update(users::table.find(id))
             .set((
