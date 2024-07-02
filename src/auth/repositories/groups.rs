@@ -2,7 +2,7 @@
 use diesel::prelude::*;
 use diesel_async::{RunQueryDsl, AsyncPgConnection as Conn};
 use super::super::models::groups::*;
-use crate::schema::*;
+use crate::schema::groups;
 
 pub struct GroupRepository;
 
