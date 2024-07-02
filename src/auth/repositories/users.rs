@@ -1,18 +1,31 @@
 use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection as Conn, RunQueryDsl};
 // use users::email;
-use super::super::models::users::*;
-use super::super::services::auth;
-use crate::schema::*;
-use diesel::result::Error as DieselError;
+use super::super::models::users::{NewSuperUser, NewUser, UpdateUser, User};
+use crate::schema::users;
 
 pub struct UserRepository;
 
 impl UserRepository {
+    /// Selects all users from the database.
+    /// 
+    /// # Errors
+    /// 
+    /// This function will return a `QueryResult` error if there is an issue
+    /// loading the users from the database.
     pub async fn select_all(conn: &mut Conn) -> QueryResult<Vec<User>> {
         users::table.load::<User>(conn).await
     }
-
+    
+    /// Finds a user by their username in the database.
+    ///
+    /// # Arguments
+    /// * `conn` - A mutable reference to the database connection.
+    /// * `username` - A reference to the username string to search for.
+    ///
+    /// # Errors
+    /// This function will return a `QueryResult` error if there is an issue
+    /// querying the database or if no user with the given username is found.
     pub async fn find_by_username(conn: &mut Conn, username: &String) -> QueryResult<User> {
         users::table
             .filter(users::username.eq(username))
@@ -20,53 +33,42 @@ impl UserRepository {
             .await
     }
 
-    // pub async fn find_by_username_or_email(conn: &mut Conn, username: &String, email: &String) -> QueryResult<User> {
-    //     users::table
-    //     .filter(username.eq(username)
-    //     .filter(email.eq(email)))
-    //     .get_result(conn)
-    //     .await
-    // }
-
-    // pub async fn select_all(conn: &mut AsyncPgConnection, id: i32) -> QueryResult<User> {
-    //     users::table.find(id).get_result(conn).await
-    // }
-    // pub async fn find_multiple(c: &mut AsyncPgConnection, limit: i64) -> QueryResult<Vec<Rustacean>> {
-    //     rustaceans::table.limit(limit).load(c).await
-    // }
+    /// Creates a new superuser in the database.
+    ///
+    /// # Arguments
+    /// * `conn` - A mutable reference to the database connection.
+    /// * `new_user` - The new user data to insert.
+    ///
+    /// # Returns
+    /// * `QueryResult<User>` - The inserted user or an error if the insertion fails.
+    ///
+    /// # Errors
+    /// This function will return a `QueryResult::Err` if the insertion into the database fails.
     pub async fn create_superuser(conn: &mut Conn, new_user: NewSuperUser) -> QueryResult<User> {
-        let hashed_password = auth::hash_password(new_user.password).unwrap();
-
-        let user_with_hashed_password = NewSuperUser {
-            password: hashed_password,
-            ..new_user
-        };
-
-        diesel::insert_into(users::table)
-            .values(user_with_hashed_password)
-            .get_result(conn)
-            .await
-    }
-    
-/// Creates a new user in the database.
-///
-/// # Arguments
-/// * `conn` - A mutable reference to the database connection.
-/// * `new_user` - The new user data to insert.
-///
-/// # Returns
-////// * `QueryResult<User>` - The inserted user or an error if the insertion fails.
-///
-/// # Errors
-/// This function will return a `QueryResult::Err` if the insertion into the database fails.
-
-    pub async fn create(conn: &mut Conn, new_user: NewUser) -> QueryResult<User> {
-
         diesel::insert_into(users::table)
             .values(new_user)
             .get_result(conn)
             .await
     }
+    
+    /// Creates a new user in the database.
+    ///
+    /// # Arguments
+    /// * `conn` - A mutable reference to the database connection.
+    /// * `new_user` - The new user data to insert.
+    ///
+    /// # Returns
+    /// * `QueryResult<User>` - The inserted user or an error if the insertion fails.
+    ///
+    /// # Errors
+    /// This function will return a `QueryResult::Err` if the insertion into the database fails.
+    pub async fn create(conn: &mut Conn, new_user: NewUser) -> QueryResult<User> {
+        diesel::insert_into(users::table)
+            .values(new_user)
+            .get_result(conn)
+            .await
+    }
+
     // pub async fn create_user_with_groups(conn: &mut Conn, new_user: NewUser, role_codes: Vec<i32>) -> QueryResult<User> {
     //     let user_with_hashed_password = NewUser {
     //         password: crypto::hash_password(new_user.password),
@@ -98,7 +100,20 @@ impl UserRepository {
 
     //     Ok(user)
     // }
-
+    
+    /// Updates a user in the database.
+    ///
+    /// # Arguments
+    ///
+    /// * `conn` - A mutable reference to the database connection.
+    /// * `id` - The ID of the user to update.
+    /// * `user` - The user data to update.
+    ///
+    /// # Errors
+    ///
+    /// This function will return a `QueryResult` error if there is an issue
+    /// updating the user in the database.
+    ///
     pub async fn update(conn: &mut Conn, id: i32, user: UpdateUser) -> QueryResult<User> {
         diesel::update(users::table.find(id))
             .set((
@@ -109,11 +124,22 @@ impl UserRepository {
             .get_result(conn)
             .await
             .map_err(|e| {
-                eprintln!("Database update error: {:?}", e);
+                eprintln!("Database update error: {e:?}");
                 e
             })
     }
-
+    
+    /// Deletes a user from the database.
+    ///
+    /// # Arguments
+    ///
+    /// * `conn` - A mutable reference to the database connection.
+    /// * `id` - The ID of the user to delete.
+    ///
+    /// # Errors
+    ///
+    /// This function will return a `QueryResult` error if there is an issue
+    /// deleting the user from the database.
     pub async fn delete(conn: &mut Conn, id: i32) -> QueryResult<usize> {
         diesel::delete(users::table.find(id)).execute(conn).await
     }
