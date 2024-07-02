@@ -2,7 +2,7 @@ use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection as Conn, RunQueryDsl};
 // use users::email;
 use super::super::models::users::{NewSuperUser, NewUser, UpdateUser, User};
-use crate::schema::users;
+use crate::{auth::models::users::UserTokenData, schema::users};
 
 pub struct UserRepository;
 
@@ -32,6 +32,15 @@ impl UserRepository {
             .get_result(conn)
             .await
     }
+
+    // pub async fn get_user_token_data(conn: &mut Conn, username: &str) -> QueryResult<UserTokenData> {
+    //     use crate::schema::users::dsl::{users, id, username as uname, email};
+    //     users
+    //         .filter(uname.eq(username))
+    //         .select((id, uname, email))
+    //         .first::<UserTokenData>(conn)
+    //         .await
+    // }
 
     /// Creates a new superuser in the database.
     ///
