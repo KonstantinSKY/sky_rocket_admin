@@ -21,6 +21,14 @@ pub struct User {                                   //The main Model
     pub created_at: NaiveDateTime,
 }
 
+// #[derive(Queryable, Serialize)]
+// pub struct UserTokenData {
+//     id: i32,
+//     username: String,
+//     email: String,
+// }
+
+
 #[derive(Insertable, Deserialize, Validate)]
 #[diesel(table_name=users)]
 pub struct NewUser {
