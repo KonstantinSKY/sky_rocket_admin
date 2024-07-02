@@ -2196,6 +2196,7 @@ dependencies = [
  "rocket_db_pools",
  "serde",
  "serde_json",
+ "thiserror",
  "tokio",
  "validator",
  "validator_derive",
