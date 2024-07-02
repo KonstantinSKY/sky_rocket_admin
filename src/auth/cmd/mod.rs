@@ -3,6 +3,7 @@ use clap::{Command, Arg, ArgMatches};
 
 pub const CMD_NAME: &str = "auth";
 
+#[must_use] 
 pub fn commands() -> Command {
     Command::new(CMD_NAME)
         .about("Auth CLI management")
