@@ -9,6 +9,7 @@ use rocket::routes;
 use routes as R;
 
 // Setting app application HERE
+#[must_use] 
 pub fn get_app_settings() -> AppSettings {   
     AppSettings { 
         name : "auth", 
@@ -16,7 +17,7 @@ pub fn get_app_settings() -> AppSettings {
         routes: routes![
           R::hi_json::hi_json,
           R::hello::hello,
-          R::users::get_all_users,
+          R::users::get_all,
           R::users::create_user,
           R::users::delete_user,
           R::users::update_user,
