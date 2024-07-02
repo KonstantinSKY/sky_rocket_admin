@@ -1,10 +1,9 @@
-use bcrypt::{BcryptError, DEFAULT_COST};
+use bcrypt::BcryptError;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use rocket::serde::json::Json;
 use serde::{Serialize, Deserialize};
 use validator_derive::Validate;
-use crate::schema::*;
+use crate::schema::users;
 use super::super::services::auth;
 
 #[derive(Queryable, Serialize, Deserialize)]
@@ -51,11 +50,11 @@ impl NewUser {
 #[derive(Insertable, Deserialize, Validate, Debug)]
 #[diesel(table_name=users)]
 pub struct NewSuperUser {
-    #[validate(length(min = 5, max = 150, message = "Username must be at least 3 characters long"))]
+    #[validate(length(min = 5, max = 150, message = "Username of Superuser must be at least 5 characters long"))]
     pub username: String,
     #[validate(email(message = "Email must be a valid email address"))]
     pub email: String,
-    #[validate(length(min = 8, max = 150, message = "Username must be at least 6 characters long"))]
+    #[validate(length(min = 10, max = 150, message = "Username must be at least 10 characters long"))]
     pub password: String,
     pub is_staff: bool,
     pub is_superuser: bool,
