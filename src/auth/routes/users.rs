@@ -8,8 +8,13 @@ use super::super::repositories::users::UserRepository;
 use super::authorization::AuthenticatedUser;
 use super::Conn; //Import from mod.rs
 
+
+/// Retrieves all users from the database.
+/// # Errors
+/// This function will return a `Custom` error if there is an issue
+/// querying the database for the user data.
 #[get("/auth/users")]
-pub async fn get_all_users(mut db: Conn, _user: AuthenticatedUser) -> Result<Value, Custom<Value>> {
+pub async fn get_all(mut db: Conn, _user: AuthenticatedUser) -> Result<Value, Custom<Value>> {
     UserRepository::select_all(&mut db)
         .await
         .map(|users| {
@@ -19,6 +24,7 @@ pub async fn get_all_users(mut db: Conn, _user: AuthenticatedUser) -> Result<Val
         })
         .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
 }
+
 
 /// Creates a new user in the database.
 ///
@@ -51,11 +57,11 @@ pub async fn create_user(
     let Ok(new_user) = new_user_json.into_inner().add_hashed_password() else {
             return Err(Custom(Status::InternalServerError, json!("Hashing Error")));
         };
-    
+    // 
     UserRepository::create(&mut db, new_user)
         .await
         .map(|user| Custom(Status::Created, json!(UserResponse::from(user))))
-        .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
+        .map_err(|_| Custom(Status::InternalServerError, json!("Database Error")))
 }
 // #[post("/auth/users", format = "json", data = "<new_user>")]
 // pub async fn create_user(
