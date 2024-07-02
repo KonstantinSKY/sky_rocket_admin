@@ -8,7 +8,6 @@ use super::super::repositories::users::UserRepository;
 use super::authorization::AuthenticatedUser;
 use super::Conn; //Import from mod.rs
 
-
 /// Retrieves all users from the database.
 /// # Errors
 /// This function will return a `Custom` error if there is an issue
@@ -25,7 +24,6 @@ pub async fn get_all(mut db: Conn, _user: AuthenticatedUser) -> Result<Value, Cu
         .map_err(|_| Custom(Status::InternalServerError, json!("Error")))
 }
 
-
 /// Creates a new user in the database.
 ///
 /// # Arguments
@@ -41,6 +39,7 @@ pub async fn get_all(mut db: Conn, _user: AuthenticatedUser) -> Result<Value, Cu
 /// - If there is an error hashing the password.
 /// - If there is an error inserting the user into the database.
 ///
+
 #[post("/auth/users", format = "json", data = "<new_user_json>")]
 pub async fn create_user(
     mut db: Conn,
@@ -55,9 +54,9 @@ pub async fn create_user(
     }
     // Convert to new user Hash the password
     let Ok(new_user) = new_user_json.into_inner().add_hashed_password() else {
-            return Err(Custom(Status::InternalServerError, json!("Hashing Error")));
-        };
-    // 
+        return Err(Custom(Status::InternalServerError, json!("Hashing Error")));
+    };
+    //
     UserRepository::create(&mut db, new_user)
         .await
         .map(|user| Custom(Status::Created, json!(UserResponse::from(user))))
