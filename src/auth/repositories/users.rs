@@ -51,28 +51,15 @@ impl UserRepository {
 /// Creates a new user in the database.
 ///
 /// # Arguments
-///
 /// * `conn` - A mutable reference to the database connection.
 /// * `new_user` - The new user data to insert.
 ///
 /// # Returns
-///
-/// * `QueryResult<User>` - The inserted user or an error if the insertion fails.
+////// * `QueryResult<User>` - The inserted user or an error if the insertion fails.
 ///
 /// # Errors
-///
 /// This function will return a `QueryResult::Err` if the insertion into the database fails.
-///
-/// # Example
-///
-/// ```
-/// let new_user = NewUser {
-///     username: "example".to_string(),
-///     email: "example@example.com".to_string(),
-///     password: "password123".to_string(),
-/// };
-/// let user = UserRepository::create(&mut conn, new_user).await.unwrap();
-/// ```
+
     pub async fn create(conn: &mut Conn, new_user: NewUser) -> QueryResult<User> {
 
         diesel::insert_into(users::table)
