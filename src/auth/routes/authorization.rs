@@ -1,3 +1,5 @@
+use crate::auth::services::auth::get_jwt_token;
+
 use super::super::repositories::users::UserRepository;
 use super::Conn; //Import from mod.rs
 use bcrypt::verify;
@@ -7,6 +9,8 @@ use rocket::request::{FromRequest, Outcome, Request};
 use rocket::response::status::Custom;
 use rocket::serde::json::{json, Json, Value};
 use std::time::{SystemTime, UNIX_EPOCH};
+use super::super::services;
+
 
 #[derive(serde::Deserialize, Debug)]
 pub struct Credentials {
@@ -14,11 +18,7 @@ pub struct Credentials {
     pub password: String,
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
-struct Claims {
-    sub: String,
-    exp: usize,
-}
+
 
 // #[rocket::post("/login", format="json", data="<credentials>")]
 // pub async fn login(mut db: Conn, credentials: Json<Credentials>) -> Result<Value, Custom<Value>> {
@@ -40,46 +40,19 @@ struct Claims {
 pub async fn login(mut db: Conn, credentials: Json<Credentials>) -> Result<Value, Custom<Value>> {
     println!("Credentials: {credentials:?}");
 
-    match UserRepository::find_by_username(&mut db, &credentials.username).await {
-        Ok(user) => match verify(&credentials.password, &user.password) {
-            Ok(true) => {
-                let expiration = if let Ok(duration) = SystemTime::now().duration_since(UNIX_EPOCH)
-                {
-                    duration.as_secs() + 3600
-                } else {
-                    eprintln!("System time is before UNIX epoch.");
+    let user = match UserRepository::find_by_username(&mut db, &credentials.username).await {
+        Ok(user) => user,
+        Err(diesel::result::Error::NotFound) => return Err(Custom(Status::Unauthorized, json!("Wrong credentials"))),
+        Err(_) => return Err(Custom(Status::InternalServerError, json!("Server Error"))),
+    };
 
-                    return Err(Custom(
-                        Status::InternalServerError,
-                        json!({"error": "System time error"}),
-                    ));
-                };
+    if services::auth::verify_password(&credentials.password, &user.password).is_err() {
+        return Err(Custom(Status::Unauthorized, json!("Wrong credentials")));
+    }
 
-                let claims = Claims {
-                    sub: user.username.clone(),
-                    exp: expiration as usize,
-                };
-                // Handle potential panic point for token encoding
-                let Ok(token) = encode(
-                    &Header::new(Algorithm::HS256),
-                    &claims,
-                    &EncodingKey::from_secret("your_secret_key".as_ref()),
-                ) else {
-                    eprintln!("Error encoding the JWT token.");
-                    return Err(Custom(
-                        Status::InternalServerError,
-                        json!({"error": "Token encoding error"}),
-                    ));
-                };
-
-                Ok(json!({ "token": token }))
-            }
-            Ok(false) | Err(_) => Err(Custom(Status::Unauthorized, json!("Wrong credentials"))),
-        },
-        Err(diesel::result::Error::NotFound) => {
-            Err(Custom(Status::Unauthorized, json!("Wrong credentials")))
-        }
-        Err(_) => Err(Custom(Status::InternalServerError, json!("Server Error"))),
+    match get_jwt_token(user.id, &user.username, &user.email, 3600) {
+        Ok(token) => Ok(json!({ "token": token })),
+        Err(_) => Err(Custom(Status::InternalServerError, json!("Server Token Error")))
     }
 }
 
