@@ -1,8 +1,11 @@
+use rocket::State;
 use serde::{Deserialize, Serialize};
 use std::time::{SystemTime, SystemTimeError, UNIX_EPOCH};
 use thiserror::Error;
 use jsonwebtoken::{decode, encode, errors::Error as JwtError, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use rocket::request::{FromRequest, Outcome, Request};
+
+use crate::project::ProjectSettings;
 
 #[derive(Error, Debug)]
 pub enum TokenError {
@@ -42,7 +45,7 @@ struct Claims {
 ///
 /// let token = get_jwt_token(1, "username", "email@example.com", 3600).unwrap();
 /// ```
-pub fn get_jwt_token(id: i32, username: &str, email: &str, token_duration: u64) -> Result<String, TokenError> {
+pub fn get_jwt_token(id: i32, username: &str, email: &str, token_duration: u64, state: &State<ProjectSettings>) -> Result<String, TokenError> {
     let exp = calculate_expiration(token_duration)?;
 
     let claims = Claims {
@@ -52,10 +55,13 @@ pub fn get_jwt_token(id: i32, username: &str, email: &str, token_duration: u64) 
         exp,
     };
 
+    // let project_secret_key: &str = state.secret_key.as_ref();
+    // println!("Got Secret key : {project_secret_key}"); 
+
     let token = encode(
         &Header::new(Algorithm::HS256),
         &claims,
-        &EncodingKey::from_secret("your_secret_key".as_ref()),
+        &EncodingKey::from_secret(state.secret_key.as_ref()),
     )?;
     Ok(token)
 }
