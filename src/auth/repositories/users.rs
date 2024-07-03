@@ -2,7 +2,7 @@ use diesel::prelude::*;
 use diesel_async::{AsyncPgConnection as Conn, RunQueryDsl};
 // use users::email;
 use super::super::models::users::{NewSuperUser, NewUser, UpdateUser, User};
-use crate::{auth::models::users::UserTokenData, schema::users};
+use crate::schema::users;
 
 pub struct UserRepository;
 
