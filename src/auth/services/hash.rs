@@ -17,7 +17,7 @@ use bcrypt::{hash, verify, BcryptError, DEFAULT_COST};
 /// use sky_rocket_admin::auth::services::auth::hash_password;
 /// let hashed = hash_password("my_password".to_string()).unwrap();
 /// ```
-pub fn hash_password(password: String) -> Result<String, BcryptError> {
+pub fn generate_password_hash(password: String) -> Result<String, BcryptError> {
     hash(password, DEFAULT_COST)
 }
 
