@@ -5,7 +5,7 @@ use validator::Validate;
 
 use super::super::models::users::{NewUser, UpdateUser, UserResponse};
 use super::super::repositories::users::UserRepository;
-use super::authorization::AuthenticatedUser;
+use super::super::services::jwt::AuthenticatedUser;
 use super::Conn; //Import from mod.rs
 
 /// Retrieves all users from the database.
