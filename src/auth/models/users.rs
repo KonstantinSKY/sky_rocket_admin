@@ -44,7 +44,7 @@ impl NewUser {
     /// # Errors
     /// This function will return a `BcryptError` if the password hashing fails.
     pub fn add_hashed_password(self) -> Result<Self, BcryptError> {
-        match hash::hash_password(self.password) {
+        match hash::generate_password_hash(self.password) {
             Ok(hashed_password) => Ok(Self {
                 password: hashed_password,
                 ..self
@@ -72,7 +72,7 @@ impl NewSuperUser {
     /// # Errors
     /// This function will return a `BcryptError` if the password hashing fails.
     pub fn add_hashed_password(self ) -> Result<Self, BcryptError> {
-        match hash::hash_password(self.password) {
+        match hash::generate_password_hash(self.password) {
             Ok(hashed_password) => Ok(Self {
                 password: hashed_password,
                 ..self
