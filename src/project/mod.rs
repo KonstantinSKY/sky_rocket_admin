@@ -6,7 +6,7 @@ pub mod database;
 use dotenv::dotenv;
 use std::env;
 
-use crate::{schema::groups::name, settings as project_setting};
+use crate::settings as project_setting;
 use rocket::Route;
 
 const PROJECT_NAME: &str = "Sky Rocket Admin";
@@ -18,14 +18,14 @@ pub struct AppSettings {
     pub routes: Vec<Route>,
 }
 
-pub struct ProjectSettings {
+pub struct Settings {
     pub name: String, 
     pub verbose_name: String,
     pub secret_key: String,
 }
 
 pub struct GlobalSettings {
-    pub project_settings: ProjectSettings, 
+    pub project_settings: Settings, 
     pub apps_settings: Vec<AppSettings>,
     pub routes: Vec<Route>,
 }
@@ -40,7 +40,7 @@ impl GlobalSettings {
             .map_err(|_| "SECRET KEY must be set. Set as default".to_string())
             .unwrap_or_else(|_| "XXXX-DEFAULT_SECRET_KEY-YYYY".to_string());
 
-        let project_settings: ProjectSettings = ProjectSettings {
+        let project_settings: Settings = Settings {
             name: PROJECT_NAME.to_owned(),
             verbose_name: PROJECT_VERBOSE_NAME.to_owned(),
             secret_key,
